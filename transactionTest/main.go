@@ -22,6 +22,7 @@ import (
 
 var sepoliaURL = "https://sepolia.infura.io/v3/6a9c093bf1fa4c989425eb0276560a1a"
 
+// 从account1地址转amount数量ETH到account2地址，需要在.env中填写account1的私钥和API key
 func main() {
 	// connect to infura or local testnet
 	// context.Background() is an empty context
@@ -106,11 +107,6 @@ func cryptoToECDSA(privateKeyBytes []byte) (*ecdsa.PrivateKey, error) {
 }
 
 
-
-
-
-
-
 func getNonce(client *ethclient.Client, addr common.Address) uint64 {
 	nonce, err := client.PendingNonceAt(context.Background(), addr)
 	if err != nil {
@@ -128,5 +124,5 @@ func getBalance(client *ethclient.Client, addr common.Address) {
 	fBalance := new(big.Float)
 	fBalance.SetString(balance.String())
 	value := new(big.Float).Quo(fBalance, big.NewFloat(math.Pow10(18)))
-	fmt.Println(value)
+	fmt.Println("balance of address",addr," is ",value)
 }

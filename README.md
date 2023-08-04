@@ -1,10 +1,7 @@
-# Introduction:
-This project contains several basic interations with Ethereum using go.
+# Configuration:
+Customize .env file.
 
-# Config:
-1. Create `.env`, write `privateKey1=XXXXX`.
-2. Change the address in `main.go` in transactionTest.
-3. User your own infura API key's endpoints URL.
-Then you are able to transfer Ether in Sepolia testnet.
+# Usage:
+cd each folder, run `go run .` (since main.go invokes some functions in handler.go, need to compile all the files).
 
-# Reference:
+# How to interact with a contract:
