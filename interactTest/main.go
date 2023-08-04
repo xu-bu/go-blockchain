@@ -2,38 +2,68 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
-	"math"
-	"math/big"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/julienschmidt/httprouter"
 )
 
-var infuraURL = "https://mainnet.infura.io/v3/6a9c093bf1fa4c989425eb0276560a1a"
-var ganacheURL="http://127.0.0.1:8545"
-var sepoliaURL="https://sepolia.infura.io/v3/6a9c093bf1fa4c989425eb0276560a1a"
+var goerliURL string
+
+// 在这里分发路由
+func newRouter() *httprouter.Router {
+	mux := httprouter.New()
+	mux.GET("/", testRes())
+	return mux
+}
 
 func main() {
-	// connect to infura or local testnet
-	// context.Background() is an empty context
-	client,err:=ethclient.DialContext(context.Background(),sepoliaURL)
-	// client,err:=ethclient.DialContext(context.Background(),ganacheURL)
-	if err!=nil{
-		log.Fatalf("Err to create a client:%v",err)
-	}
-	defer client.Close()
 
-	// go to etherscan choose a random addr and get its balance here
-	addr:=common.HexToAddress("0x52906abb6B9d358eEF7D903cf1ecb521643297f4")
-	balance,err:=client.BalanceAt(context.Background(),addr,nil)
-	if err!=nil{
-		log.Fatalf("Err to get balance:%v",err)
+	srv := &http.Server{
+		Addr:    ":10101",
+		Handler: newRouter(),
 	}
-	// convert unit
-	fBalance:=new(big.Float)
-	fBalance.SetString(balance.String())
-	value:=new(big.Float).Quo(fBalance,big.NewFloat(math.Pow10(18)))
-	fmt.Println(value)
+
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		signal.Notify(sigint, syscall.SIGTERM)
+		<-sigint
+
+		log.Println("service interrupt received")
+
+		log.Println("http server shutting down")
+		time.Sleep(5 * time.Second)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Printf("http server shutdown error: %v", err)
+		}
+
+		log.Println("shutdown complete")
+
+		close(idleConnsClosed)
+
+	}()
+
+	log.Printf("Starting server on port 10101")
+	if err := srv.ListenAndServe(); err != nil {
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("fatal http server failed to start: %v", err)
+		}
+	}
+
+	<-idleConnsClosed
+	log.Println("Service Stop")
+
 }
+
+
