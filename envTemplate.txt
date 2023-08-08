@@ -1,0 +1,6 @@
+privateKey=
+ganacheURL=
+goerliURL=
+CONTRACT_ADDRESS=
+ACCOUNT1=
+ACCOUNT2=
