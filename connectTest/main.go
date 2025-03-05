@@ -4,17 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+
 	"github.com/ethereum/go-ethereum/ethclient"
+	
+	"clientTest/config"
 )
 
-// generate an API key in INFURA and use its endpoints
-var infuraURL = "https://mainnet.infura.io/v3/6a9c093bf1fa4c989425eb0276560a1a"
-var ganacheURL="http://127.0.0.1:8545"
-
 func main() {
+	config:=config.LoadConfig()
+	// infuraURL :=config.InfraEndpoint
+	ganacheURL:=config.GanacheURL
 	// connect to infura or local testnet
 	// context.Background() is an empty context
-	// client,err:=ethclient.DialContext(context.Background(),infuraURL)
+	// client,err:=ethclient.DialContext(context.Background(),InfraEndpoint)
 	client,err:=ethclient.DialContext(context.Background(),ganacheURL)
 	if err!=nil{
 		log.Fatalf("Err to create a client:%v",err)
