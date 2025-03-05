@@ -18,16 +18,17 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/joho/godotenv"
+
+	"goTest/config"
 )
 
-var sepoliaURL = "https://sepolia.infura.io/v3/6a9c093bf1fa4c989425eb0276560a1a"
-
-// 从account1地址转amount数量ETH到account2地址，需要在.env中填写account1的私钥和API key
+// transfer ETH from account1 to account2，need API key and private key of account1 in .env
 func main() {
+	config:=config.LoadConfig()
 	// connect to infura or local testnet
 	// context.Background() is an empty context
-	client, err := ethclient.DialContext(context.Background(), sepoliaURL)
-	// client,err:=ethclient.DialContext(context.Background(),ganacheURL)
+	// client, err := ethclient.DialContext(context.Background(), config.InfraEndpoint)
+	client,err:=ethclient.DialContext(context.Background(),config.GanacheURL)
 	if err != nil {
 		log.Fatalf("Err to create a client:%v", err)
 	}

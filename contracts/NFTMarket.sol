@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721URIStorage, ERC721} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 struct NFTListing {
@@ -12,10 +10,8 @@ struct NFTListing {
   address seller;
 }
 
-contract NFTMarket is ERC721URIStorage, Ownable {
-  using Counters for Counters.Counter;
-  using SafeMath for uint256;
-  Counters.Counter private _tokenIDs;
+contract NFTMarket is ERC721URIStorage {
+  uint256 private _tokenIDs;
   mapping(uint256 => NFTListing) private _listings;
 
   // if tokenURI is not an empty string => an NFT was created
@@ -26,11 +22,10 @@ contract NFTMarket is ERC721URIStorage, Ownable {
   constructor() ERC721("Rock NFTs", "ANFT") {}
 
   function createNFT(string calldata tokenURI) public  {
-      _tokenIDs.increment();
-      uint256 currentID = _tokenIDs.current();
-      _safeMint(msg.sender, currentID);
-      _setTokenURI(currentID, tokenURI);
-      emit NFTTransfer(currentID, address(0),msg.sender, tokenURI, 0);
+      uint256 tokenID = _tokenIDs++;
+      _safeMint(msg.sender, tokenID);
+      _setTokenURI(tokenID, tokenURI);
+      emit NFTTransfer(tokenID, address(0),msg.sender, tokenURI, 0);
   }
 
   function listNFT(uint256 tokenID, uint256 price) public {
@@ -49,7 +44,7 @@ contract NFTMarket is ERC721URIStorage, Ownable {
      emit NFTTransfer(tokenID, address(this), msg.sender, "", 0);
   }
 
-  function withdrawFunds() public onlyOwner {
+  function withdrawFunds() public {
     uint256 balance =  address(this).balance;
     require(balance > 0, "NFTMarket: balance is zero");
     payable(msg.sender).transfer(balance); 
